@@ -1,1 +1,1 @@
-pf2025 decl int x, y; inicio x   5 + 3; impdig(x); end
+pf2025 decl int a, b; booleano bandera; inicio a := 10; b := 5; bandera := verdadero; si (bandera) inicio a := a + b; end mientras (a > 0) inicio impdig(a); a := a - 1; end end

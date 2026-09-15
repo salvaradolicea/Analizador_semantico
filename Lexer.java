@@ -1,13 +1,9 @@
 import java.util.*;
-import java.util.regex.*;
 
 public class Lexer {
-
     private List<ErrorLexico> errores = new ArrayList<>();
-
     private static final Set<String> tipos = Set.of("int", "cad", "booleano");
 
-    // Analiza una lista de líneas ya preprocesadas (sin comentarios de bloque ni //)
     public List<Token> analizar(List<String> lineas) {
         List<Token> tokens = new ArrayList<>();
         int numLinea = 1;
@@ -16,7 +12,8 @@ public class Lexer {
             String linea = lineaOriginal;
 
             // Procesar operadores multi-caracter primero
-            linea = linea.replace(":=", " := ");
+            linea = linea.replace(":=", " := ")
+                         .replace("==", " == ");
 
             // Insertar espacios alrededor de separadores y operadores simples
             linea = linea
@@ -27,7 +24,9 @@ public class Lexer {
                     .replace("+", " + ")
                     .replace("-", " - ")
                     .replace("*", " * ")
-                    .replace("/", " / ");
+                    .replace("/", " / ")
+                    .replace("<", " < ")
+                    .replace(">", " > ");
 
             linea = linea.trim().replaceAll("\\s+", " ");
 
@@ -37,26 +36,21 @@ public class Lexer {
             }
 
             String[] palabras = linea.split(" ");
-
             int colApprox = 1;
+            
             for (String palabra : palabras) {
                 if (palabra.isEmpty()) { colApprox += 1; continue; }
-
                 Token token = reconocerToken(palabra, numLinea);
 
                 if (token.getTipo() == TokenType.ERROR) {
                     errores.add(new ErrorLexico("Símbolo no identificado '" + palabra + "'", numLinea, colApprox));
-                    // continuar sin detener el análisis
                 } else {
                     tokens.add(token);
                 }
-
                 colApprox += palabra.length() + 1;
             }
-
             numLinea++;
         }
-
         tokens.add(new Token(TokenType.EOF, "EOF", Math.max(1, numLinea - 1)));
         return tokens;
     }
@@ -70,31 +64,34 @@ public class Lexer {
             case "impdig": return new Token(TokenType.IMPDIG, lexema, linea);
             case "impcad": return new Token(TokenType.IMPCAD, lexema, linea);
             case "leerdig": return new Token(TokenType.LEERDIG, lexema, linea);
+            
+            // Nuevas palabras reservadas en español
+            case "si": return new Token(TokenType.SI, lexema, linea);
+            case "mientras": return new Token(TokenType.MIENTRAS, lexema, linea);
+            case "impbool": return new Token(TokenType.IMPBOOL, lexema, linea);
+            case "verdadero": 
+            case "falso": return new Token(TokenType.VAL_BOOL, lexema, linea);
 
             case "+": return new Token(TokenType.MAS, lexema, linea);
             case "-": return new Token(TokenType.MENOS, lexema, linea);
             case "*": return new Token(TokenType.MUL, lexema, linea);
             case "/": return new Token(TokenType.DIV, lexema, linea);
             case ":=": return new Token(TokenType.ASIG, lexema, linea);
+            case "==": return new Token(TokenType.IGUAL_QUE, lexema, linea);
+            case "<": return new Token(TokenType.MENOR, lexema, linea);
+            case ">": return new Token(TokenType.MAYOR, lexema, linea);
             case ";": return new Token(TokenType.PC, lexema, linea);
             case ",": return new Token(TokenType.COMA, lexema, linea);
             case "(": return new Token(TokenType.PAREN_OPEN, lexema, linea);
             case ")": return new Token(TokenType.PAREN_CLOSE, lexema, linea);
         }
 
-        if (tipos.contains(lexema))
-            return new Token(TokenType.TIPO, lexema, linea);
-
-        if (lexema.matches("[0-9]+"))
-            return new Token(TokenType.CENT, lexema, linea);
-
-        if (lexema.matches("[a-zA-Z][a-zA-Z0-9]*"))
-            return new Token(TokenType.ID, lexema, linea);
+        if (tipos.contains(lexema)) return new Token(TokenType.TIPO, lexema, linea);
+        if (lexema.matches("[0-9]+")) return new Token(TokenType.CENT, lexema, linea);
+        if (lexema.matches("[a-zA-Z][a-zA-Z0-9]*")) return new Token(TokenType.ID, lexema, linea);
 
         return new Token(TokenType.ERROR, lexema, linea);
     }
 
-    public List<ErrorLexico> getErrores() {
-        return errores;
-    }
+    public List<ErrorLexico> getErrores() { return errores; }
 }

@@ -1,6 +1,23 @@
 pf2025
-decl int x, y;
+decl
+    int a, b;
+    booleano bandera;
+    // int a; // ERROR: Variable 'a' ya ha sido declarada
 inicio
-x :=  5 + 3;
-impdig(x);
+    a := 10;
+    b := 5;
+    bandera := verdadero;
+    
+    // bandera := 15; // ERROR: Incompatibilidad de tipos al asignar
+
+    si (bandera) inicio
+        a := a + b;
+        // a := a + bandera; // ERROR: La aritmética requiere tipos 'int'
+    end
+
+    mientras (a > 0) inicio
+        impdig(a);
+        // impbool(a); // ERROR: 'impbool' requiere una variable 'booleano'
+        a := a - 1;
+    end
 end

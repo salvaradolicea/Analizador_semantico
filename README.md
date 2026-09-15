@@ -1,42 +1,112 @@
-# Analizador_semantico
-# Analizador Léxico, Sintáctico y Semántico (pf2025)
+# Analizador_sint-ctico
+🧾 Analizador Sintáctico - Lenguaje PF2025
+📌 Descripción
+Este proyecto implementa un analizador léxico y sintáctico en Java para el lenguaje PF2025, desarrollado como parte de la asignatura Lenguajes y Autómatas.
+El sistema es capaz de leer un archivo fuente (progfte.txt), analizarlo y verificar su estructura gramatical.
 
-Este proyecto es un compilador básico implementado en Java que realiza análisis léxico, sintáctico y semántico mediante un enfoque de descenso recursivo. El lenguaje fuente está diseñado con palabras reservadas en español.
+⚙️ Funcionamiento
+El sistema se divide en dos etapas:
+🔹 1. Analizador Léxico
 
-## 🚀 Características Principales
+Identifica los tokens del programa
+Clasifica palabras reservadas, operadores, identificadores y números
+Genera:
 
-*   **Análisis Léxico:** Reconocimiento de tokens, operadores aritméticos, relacionales, identificadores y tipos de datos. Generación de reporte de errores léxicos.
-*   **Análisis Sintáctico:** Construcción de un Árbol de Sintaxis Abstracta (AST) para representar la estructura del código.
-*   **Análisis Semántico:**
-    *   **Tabla de Símbolos:** Gestión de ámbitos, evitando doble declaración y asegurando que toda variable se declare antes de su uso.
-    *   **Pila Semántica:** Validación de tipos en expresiones matemáticas y relacionales.
-    *   **Compatibilidad de Tipos:** Verificación estricta en asignaciones (`T_izq == T_der`) y parámetros de impresión.
-    *   **Control de Flujo:** Validación de sentencias `si` y `mientras` exigiendo que sus condiciones resuelvan a tipos `booleano`.
+progfte.tok
+progfte.tab
+progfte.dep
 
-## 🛠️ Tecnologías
 
-*   **Lenguaje:** Java (JDK 11+)
-*   **Estructuras clave:** `HashMap` (Tabla de Símbolos), `Stack` (Pila Semántica), Árboles n-arios (AST).
 
-## 📝 Estructura del Lenguaje Fuente
 
-El compilador espera un archivo de texto (`progfte.txt`) con la siguiente estructura básica:
+🔹 2. Analizador Sintáctico
 
-```text
+Toma la lista de tokens como entrada
+Valida la estructura del lenguaje
+Genera un árbol sintáctico
+Detecta errores
+
+
+🧠 Gramática del lenguaje
+PROGRAMA → pf2025 DECL BLOQUE
+
+DECL → decl LISTA_DECL
+LISTA_DECL → TIPO ID (, ID)* ;
+
+BLOQUE → inicio SENTENCIAS end
+
+SENTENCIAS → SENTENCIA*
+
+SENTENCIA → ASIGNACION | IMPRESION | LECTURA
+
+ASIGNACION → ID := EXPRESION ;
+
+EXPRESION → T (+|-) T*
+T → F (*|/) F*
+F → (EXPRESION) | ID | NUM
+
+
+🌳 Árbol sintáctico
+El analizador construye un árbol que representa la estructura del programa.
+Ejemplo:
+x := 5 + 3 * 2
+
+Árbol:
+      :=
+     /  \
+    x    +
+        / \
+       5   *
+          / \
+         3   2
+
+
+🚨 Manejo de errores
+El sistema detecta:
+
+Paréntesis desbalanceados
+Operadores consecutivos
+Falta de operandos
+Tokens inesperados
+
+
+🧩 Estructura del proyecto
+/src
+ ├── Lexer.java
+ ├── Token.java
+ ├── TokenType.java
+ ├── Parser.java
+ ├── Nodo.java
+ ├── Main.java
+ ├── SymbolTable.java
+ ├── EntradaSimbolo.java
+ ├── FileManager.java
+
+
+▶️ Ejecución
+
+Colocar archivo progfte.txt
+Ejecutar Main.java
+Se generan:
+
+progfte.tok
+progfte.tab
+progfte.dep
+
+
+
+
+✅ Ejemplo de entrada
 pf2025
-decl
-    int numero, contador;
-    booleano bandera;
+decl int x, y;
 inicio
-    numero := 10;
-    bandera := verdadero;
-    
-    si (numero > 5) inicio
-        impdig(numero);
-    end
-    
-    mientras (bandera == verdadero) inicio
-        impbool(bandera);
-        bandera := falso;
-    end
+x := 5 + 3;
+impdig(x);
 end
+
+
+✅ Resultado esperado
+✔ Tokens generados
+✔ Tabla de símbolos
+✔ Validación sintáctica
+✔ Árbol sintáctico

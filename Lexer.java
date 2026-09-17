@@ -1,4 +1,5 @@
 import java.util.*;
+import java.util.regex.*;
 
 public class Lexer {
     private List<ErrorLexico> errores = new ArrayList<>();
@@ -11,35 +12,26 @@ public class Lexer {
         for (String lineaOriginal : lineas) {
             String linea = lineaOriginal;
 
-            // Procesar operadores multi-caracter primero
             linea = linea.replace(":=", " := ")
                          .replace("==", " == ");
 
-            // Insertar espacios alrededor de separadores y operadores simples
-            linea = linea
-                    .replace(";", " ; ")
-                    .replace(",", " , ")
-                    .replace("(", " ( ")
-                    .replace(")", " ) ")
-                    .replace("+", " + ")
-                    .replace("-", " - ")
-                    .replace("*", " * ")
-                    .replace("/", " / ")
-                    .replace("<", " < ")
-                    .replace(">", " > ");
+            linea = linea.replace(";", " ; ")
+                         .replace(",", " , ")
+                         .replace("(", " ( ")
+                         .replace(")", " ) ")
+                         .replace("+", " + ")
+                         .replace("-", " - ")
+                         .replace("*", " * ")
+                         .replace("/", " / ")
+                         .replace("<", " < ")
+                         .replace(">", " > ");
 
-            linea = linea.trim().replaceAll("\\s+", " ");
-
-            if (linea.isEmpty()) {
-                numLinea++;
-                continue;
-            }
-
-            String[] palabras = linea.split(" ");
-            int colApprox = 1;
+            // Expresión regular que agrupa lo que está entre comillas o caracteres continuos
+            Matcher matcher = Pattern.compile("(\".*?\"|\\S+)").matcher(linea);
             
-            for (String palabra : palabras) {
-                if (palabra.isEmpty()) { colApprox += 1; continue; }
+            int colApprox = 1;
+            while (matcher.find()) {
+                String palabra = matcher.group(1);
                 Token token = reconocerToken(palabra, numLinea);
 
                 if (token.getTipo() == TokenType.ERROR) {
@@ -63,12 +55,11 @@ public class Lexer {
             case "end": return new Token(TokenType.END, lexema, linea);
             case "impdig": return new Token(TokenType.IMPDIG, lexema, linea);
             case "impcad": return new Token(TokenType.IMPCAD, lexema, linea);
+            case "impbool": return new Token(TokenType.IMPBOOL, lexema, linea);
             case "leerdig": return new Token(TokenType.LEERDIG, lexema, linea);
             
-            // Nuevas palabras reservadas en español
             case "si": return new Token(TokenType.SI, lexema, linea);
             case "mientras": return new Token(TokenType.MIENTRAS, lexema, linea);
-            case "impbool": return new Token(TokenType.IMPBOOL, lexema, linea);
             case "verdadero": 
             case "falso": return new Token(TokenType.VAL_BOOL, lexema, linea);
 
@@ -89,6 +80,7 @@ public class Lexer {
         if (tipos.contains(lexema)) return new Token(TokenType.TIPO, lexema, linea);
         if (lexema.matches("[0-9]+")) return new Token(TokenType.CENT, lexema, linea);
         if (lexema.matches("[a-zA-Z][a-zA-Z0-9]*")) return new Token(TokenType.ID, lexema, linea);
+        if (lexema.startsWith("\"") && lexema.endsWith("\"")) return new Token(TokenType.VAL_CAD, lexema, linea);
 
         return new Token(TokenType.ERROR, lexema, linea);
     }

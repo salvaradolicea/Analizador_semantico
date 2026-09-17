@@ -79,6 +79,7 @@ public class Parser {
         switch (t.getTipo()) {
             case ID: return asignacion();
             case IMPDIG: return impresion();
+            case IMPCAD: return impresionCad();
             case IMPBOOL: return impresionBool();
             case LEERDIG: return lectura();
             case SI: return sentenciaSi();
@@ -95,7 +96,7 @@ public class Parser {
         
         Nodo expr = expresion();
         if (!expr.getTipoDato().equals("booleano")) {
-            throw new RuntimeException("Error semántico en línea " + t.getLinea() + ": La condición del 'si' debe ser booleana.");
+            throw new RuntimeException("Error SEMÁNTICO en línea " + t.getLinea() + ": La condición del 'si' debe ser obligatoriamente 'booleano', pero se recibió '" + expr.getTipoDato() + "'.");
         }
         nodo.agregarHijo(expr);
         
@@ -112,7 +113,7 @@ public class Parser {
         
         Nodo expr = expresion();
         if (!expr.getTipoDato().equals("booleano")) {
-            throw new RuntimeException("Error semántico en línea " + t.getLinea() + ": La condición del 'mientras' debe ser booleana.");
+            throw new RuntimeException("Error SEMÁNTICO en línea " + t.getLinea() + ": La condición del 'mientras' debe ser obligatoriamente 'booleano', pero se recibió '" + expr.getTipoDato() + "'.");
         }
         nodo.agregarHijo(expr);
         
@@ -127,7 +128,7 @@ public class Parser {
         consumir(TokenType.ID, "Se esperaba ID");
 
         if (!symbolTable.existe(id.getLexema())) {
-            throw new RuntimeException("Error semántico en línea " + id.getLinea() + ": variable '" + id.getLexema() + "' no declarada.");
+            throw new RuntimeException("Error SEMÁNTICO en línea " + id.getLinea() + ": La variable '" + id.getLexema() + "' no ha sido declarada.");
         }
         
         String tipoVariable = symbolTable.obtenerTipo(id.getLexema());
@@ -136,8 +137,8 @@ public class Parser {
 
         Nodo expr = expresion();
         if (!tipoVariable.equals(expr.getTipoDato())) {
-             throw new RuntimeException("Error semántico en línea " + id.getLinea() + 
-                 ": Incompatibilidad de tipos. No se puede asignar '" + expr.getTipoDato() + "' a '" + tipoVariable + "'.");
+             throw new RuntimeException("Error SEMÁNTICO en línea " + id.getLinea() + 
+                 ": Incompatibilidad de tipos. Intentas asignar un valor tipo '" + expr.getTipoDato() + "' a la variable '" + id.getLexema() + "' que fue declarada como '" + tipoVariable + "'.");
         }
         
         nodo.agregarHijo(expr);
@@ -153,7 +154,24 @@ public class Parser {
 
         Nodo expr = expresion();
         if (!expr.getTipoDato().equals("int")) {
-            throw new RuntimeException("Error semántico en línea " + t.getLinea() + ": 'impdig' requiere tipo 'int'.");
+            throw new RuntimeException("Error SEMÁNTICO en línea " + t.getLinea() + ": La función 'impdig' es exclusiva para números enteros. Estás intentando imprimir un valor tipo '" + expr.getTipoDato() + "'.");
+        }
+        
+        nodo.agregarHijo(expr);
+        consumir(TokenType.PAREN_CLOSE, "Falta ')'");
+        consumir(TokenType.PC, "Falta ';'");
+        return nodo;
+    }
+
+    private Nodo impresionCad() {
+        Nodo nodo = new Nodo("IMPCAD");
+        Token t = actual();
+        consumir(TokenType.IMPCAD, "Error en impresión de cadena");
+        consumir(TokenType.PAREN_OPEN, "Falta '('");
+
+        Nodo expr = expresion();
+        if (!expr.getTipoDato().equals("cad")) {
+            throw new RuntimeException("Error SEMÁNTICO en línea " + t.getLinea() + ": La función 'impcad' es exclusiva para texto. Estás intentando imprimir un valor tipo '" + expr.getTipoDato() + "'.");
         }
         
         nodo.agregarHijo(expr);
@@ -165,12 +183,12 @@ public class Parser {
     private Nodo impresionBool() {
         Nodo nodo = new Nodo("IMPBOOL");
         Token t = actual();
-        consumir(TokenType.IMPBOOL, "Error en impresión");
+        consumir(TokenType.IMPBOOL, "Error en impresión booleana");
         consumir(TokenType.PAREN_OPEN, "Falta '('");
 
         Nodo expr = expresion();
         if (!expr.getTipoDato().equals("booleano")) {
-            throw new RuntimeException("Error semántico en línea " + t.getLinea() + ": 'impbool' requiere tipo 'booleano'.");
+            throw new RuntimeException("Error SEMÁNTICO en línea " + t.getLinea() + ": La función 'impbool' es exclusiva para booleanos. Estás intentando imprimir un valor tipo '" + expr.getTipoDato() + "'.");
         }
         
         nodo.agregarHijo(expr);
@@ -188,7 +206,7 @@ public class Parser {
         consumir(TokenType.ID, "Se esperaba ID");
 
         if (!symbolTable.existe(id.getLexema())) {
-            throw new RuntimeException("Error semántico en línea " + id.getLinea() + ": variable '" + id.getLexema() + "' no declarada.");
+            throw new RuntimeException("Error SEMÁNTICO en línea " + id.getLinea() + ": La variable '" + id.getLexema() + "' no ha sido declarada.");
         }
 
         nodo.agregarHijo(new Nodo(id.getLexema()));
@@ -206,11 +224,11 @@ public class Parser {
             Nodo derecho = expAritmetica();
             
             if (!nodo.getTipoDato().equals("int") || !derecho.getTipoDato().equals("int")) {
-                throw new RuntimeException("Error semántico en línea " + op.getLinea() + ": Operadores relacionales requieren 'int'.");
+                throw new RuntimeException("Error SEMÁNTICO en línea " + op.getLinea() + ": Los operadores relacionales solo pueden comparar variables de tipo 'int'.");
             }
 
             Nodo nuevo = new Nodo(op.getLexema());
-            nuevo.setTipoDato("booleano"); // Al evaluar relacionales, el resultado es booleano
+            nuevo.setTipoDato("booleano");
             nuevo.agregarHijo(nodo);
             nuevo.agregarHijo(derecho);
             nodo = nuevo;
@@ -226,7 +244,7 @@ public class Parser {
             Nodo derecho = termino();
             
             if (!nodo.getTipoDato().equals("int") || !derecho.getTipoDato().equals("int")) {
-                 throw new RuntimeException("Error semántico en línea " + op.getLinea() + ": Aritmética requiere 'int'.");
+                 throw new RuntimeException("Error SEMÁNTICO en línea " + op.getLinea() + ": No se puede sumar o restar un tipo '" + nodo.getTipoDato() + "' con un tipo '" + derecho.getTipoDato() + "'. Solo se permiten enteros.");
             }
 
             Nodo nuevo = new Nodo(op.getLexema());
@@ -246,7 +264,7 @@ public class Parser {
             Nodo derecho = factor();
             
             if (!nodo.getTipoDato().equals("int") || !derecho.getTipoDato().equals("int")) {
-                 throw new RuntimeException("Error semántico en línea " + op.getLinea() + ": Aritmética requiere 'int'.");
+                 throw new RuntimeException("Error SEMÁNTICO en línea " + op.getLinea() + ": No se puede multiplicar o dividir un tipo '" + nodo.getTipoDato() + "' con un tipo '" + derecho.getTipoDato() + "'. Solo se permiten enteros.");
             }
 
             Nodo nuevo = new Nodo(op.getLexema());
@@ -275,9 +293,17 @@ public class Parser {
             return n;
         }
 
+        // Nueva lógica para capturar variables de texto (Cadenas)
+        if (t.getTipo() == TokenType.VAL_CAD) {
+            avanzar();
+            Nodo n = new Nodo(t.getLexema());
+            n.setTipoDato("cad");
+            return n;
+        }
+
         if (t.getTipo() == TokenType.ID) {
             if (!symbolTable.existe(t.getLexema())) {
-                throw new RuntimeException("Error semántico en línea " + t.getLinea() + ": variable '" + t.getLexema() + "' no declarada.");
+                throw new RuntimeException("Error SEMÁNTICO en línea " + t.getLinea() + ": La variable '" + t.getLexema() + "' no ha sido declarada.");
             }
             avanzar();
             Nodo n = new Nodo(t.getLexema());

@@ -4,7 +4,6 @@ public class Main {
 
     public static void main(String[] args) {
         try {
-            // 1 y 2. Leer programa fuente y Preprocesado
             List<String> programa = FileManager.leerArchivo("progfte.txt");
             StringBuilder sbAll = new StringBuilder();
             for (String l : programa) sbAll.append(l).append("\n");
@@ -20,11 +19,9 @@ public class Main {
                 if (!t.isEmpty()) lineasLimpias.add(t);
             }
 
-            // 3. Ejecutar analizador léxico
             Lexer lexer = new Lexer();
             List<Token> tokens = lexer.analizar(lineasLimpias);
 
-            // 4. Generar archivo progfte.dep
             StringBuilder depSb = new StringBuilder();
             for (int i = 0; i < lineasLimpias.size(); i++) {
                 if (i > 0) depSb.append(' ');
@@ -32,7 +29,6 @@ public class Main {
             }
             FileManager.escribirArchivoDep("progfte.dep", Arrays.asList(depSb.toString()));
 
-            // 5. Construir tabla de símbolos (Fase DECL y validación de doble declaración)
             List<EntradaSimbolo> tablaSimbolos = construirTablaSimbolos(tokens);
             SymbolTable symTable = new SymbolTable();
             
@@ -42,22 +38,33 @@ public class Main {
                 }
             } catch (RuntimeException ex) {
                 System.out.println(ex.getMessage());
-                return; // Detenemos la ejecución si hay un error de declaración doble
+                return; 
             }
 
-            // 6 y 7. Generar .tab y .tok
             String contenidoTab = generarArchivoTab(tablaSimbolos);
             FileManager.escribirArchivo("progfte.tab", Arrays.asList(contenidoTab.split("\n")));
             String contenidoTok = generarArchivoTok(tokens, lexer.getErrores());
             FileManager.escribirArchivo("progfte.tok", Arrays.asList(contenidoTok.split("\n")));
-            System.out.println("Análisis léxico completado");
 
-            // 8. Parser semántico
+            // === 8. PARSER Y EJECUCIÓN ===
             Parser parser = new Parser(tokens, symTable);
             try {
                 Nodo arbol = parser.parse();
-                System.out.println("Análisis sintáctico y semántico correctos");
+                System.out.println("Análisis completado. Iniciando programa...\n");
+                System.out.println("--------------------------------------");
+                
+                // Ejecución del código
+                Interprete interprete = new Interprete();
+                try {
+                    interprete.interpretar(arbol);
+                } catch (RuntimeException e) {
+                    System.out.println("\nERROR DE EJECUCIÓN: " + e.getMessage());
+                }
+
+                System.out.println("--------------------------------------");
+                System.out.println("\nÁRBOL SINTÁCTICO CON EXPRESIONES EVALUADAS:");
                 imprimirArbol(arbol, 0);
+
             } catch (Exception e) {
                 System.out.println(e.getMessage());
             }
@@ -125,14 +132,21 @@ public class Main {
         switch (tipo) {
             case "int": return "0";
             case "cad": return "\"\"";
-            case "booleano": return "falso"; // Adaptado a español según rúbrica
+            case "booleano": return "falso"; 
             default: return "indefinido";
         }
     }
 
+    // MODIFICADO: Imprime el árbol agregando el valor calculado si existe
     public static void imprimirArbol(Nodo nodo, int nivel) {
         for (int i = 0; i < nivel; i++) System.out.print("  ");
-        System.out.println(nodo.getValor());
+        
+        String extra = "";
+        if (nodo.getValorEvaluado() != null) {
+            extra = " [Evaluado: " + nodo.getValorEvaluado() + "]";
+        }
+        
+        System.out.println(nodo.getValor() + extra);
         for (Nodo hijo : nodo.getHijos()) imprimirArbol(hijo, nivel + 1);
     }
 }

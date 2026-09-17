@@ -1,1 +1,1 @@
-pf2025 decl int x, y; inicio x:=  ((5 + 3)*2)/0; impdig(x); end
+pf2025 decl int x, y, z; inicio leerdig(x); y := x + 3; impdig(y); z := (5 + 3) / 0; end

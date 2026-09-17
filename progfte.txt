@@ -1,8 +1,14 @@
 pf2025
-decl int x, y;
-
+decl
+    int x, y, z;
 inicio
+    // Leer desde teclado
+    leerdig(x);
+    
+    // Evaluar suma e imprimirla
+    y := x + 3;
+    impdig(y);
 
-x:=  ((5 + 3)*2)/0;
-impdig(x);
+    // Error de división por cero
+    z := (5 + 3) / 0;
 end

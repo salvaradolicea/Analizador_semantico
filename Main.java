@@ -51,8 +51,14 @@ public class Main {
             try {
                 Nodo arbol = parser.parse();
                 System.out.println("Análisis completado. Iniciando programa...\n");
-                System.out.println("--------------------------------------");
                 
+                // --- INTEGRACIÓN DE CÓDIGO INTERMEDIO ---
+                GeneradorCodigoIntermedio generador = new GeneradorCodigoIntermedio();
+                generador.generar(arbol);
+                generador.imprimirCuadruplos();
+                // ----------------------------------------
+
+                System.out.println("--------------------------------------");
                 // Ejecución del código
                 Interprete interprete = new Interprete();
                 try {
@@ -137,7 +143,6 @@ public class Main {
         }
     }
 
-    // MODIFICADO: Imprime el árbol agregando el valor calculado si existe
     public static void imprimirArbol(Nodo nodo, int nivel) {
         for (int i = 0; i < nivel; i++) System.out.print("  ");
         

@@ -1,14 +1,10 @@
 pf2025
 decl
-    int x, y, z;
+int a, b, c;
 inicio
-    // Leer desde teclado
-    leerdig(x);
-    
-    // Evaluar suma e imprimirla
-    y := x + 3;
-    impdig(y);
-
-    // Error de división por cero
-    z := (5 + 3) / 0;
+    b := 5;
+    c := 2;
+    a := b * c + b * c;
+    impcad("Resultado de expresion compleja:");
+    impdig(a);
 end

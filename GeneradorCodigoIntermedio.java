@@ -43,24 +43,19 @@ public class GeneradorCodigoIntermedio {
             case "SI":
                 String condSi = procesar(nodo.getHijos().get(0));
                 String L_fin_si = nuevoLabel();
-                // Salto condicional ifFalse evaluando la expresión
                 cuadruplos.add(new Cuadruplo("ifFalse", condSi, null, L_fin_si));
-                procesar(nodo.getHijos().get(1)); // Cuerpo del SI
+                procesar(nodo.getHijos().get(1)); 
                 cuadruplos.add(new Cuadruplo("Label", null, null, L_fin_si));
                 return null;
                 
             case "MIENTRAS":
                 String L_inicio = nuevoLabel();
                 String L_fin = nuevoLabel();
-                // Etiqueta de inicio del ciclo
                 cuadruplos.add(new Cuadruplo("Label", null, null, L_inicio));
                 String condM = procesar(nodo.getHijos().get(0));
-                // Salto si la condición no se cumple
                 cuadruplos.add(new Cuadruplo("ifFalse", condM, null, L_fin));
-                procesar(nodo.getHijos().get(1)); // Cuerpo del MIENTRAS
-                // Salto incondicional de regreso al inicio
+                procesar(nodo.getHijos().get(1)); 
                 cuadruplos.add(new Cuadruplo("goto", null, null, L_inicio));
-                // Etiqueta de fin del ciclo
                 cuadruplos.add(new Cuadruplo("Label", null, null, L_fin));
                 return null;
                 
@@ -86,14 +81,34 @@ public class GeneradorCodigoIntermedio {
                 String arg1 = procesar(nodo.getHijos().get(0));
                 String arg2 = procesar(nodo.getHijos().get(1));
                 String temp = nuevoTemp();
-                // Instrucción de 3 direcciones para operaciones
                 cuadruplos.add(new Cuadruplo(val, arg1, arg2, temp));
                 return temp;
                 
             default:
-                // Retorna constantes, booleanos, identificadores u operandos finales
                 return val;
         }
+    }
+
+    public void imprimirCodigoTresDirecciones() {
+        System.out.println("\n--- CÓDIGO DE TRES DIRECCIONES ---");
+        for (Cuadruplo c : cuadruplos) {
+            if (c.op.equals("Label")) {
+                System.out.println(c.res + ":");
+            } else if (c.op.equals("goto")) {
+                System.out.println("goto " + c.res);
+            } else if (c.op.equals("ifFalse")) {
+                System.out.println("ifFalse " + c.arg1 + " goto " + c.res);
+            } else if (c.op.equals(":=")) {
+                System.out.println(c.res + " = " + c.arg1);
+            } else if (c.op.equals("print")) {
+                System.out.println("print " + c.arg1);
+            } else if (c.op.equals("read")) {
+                System.out.println("read " + c.res);
+            } else { 
+                System.out.println(c.res + " = " + c.arg1 + " " + c.op + " " + c.arg2);
+            }
+        }
+        System.out.println("----------------------------------");
     }
 
     public void imprimirCuadruplos() {

@@ -46,7 +46,6 @@ public class Main {
             String contenidoTok = generarArchivoTok(tokens, lexer.getErrores());
             FileManager.escribirArchivo("progfte.tok", Arrays.asList(contenidoTok.split("\n")));
 
-            // === 8. PARSER Y EJECUCIÓN ===
             Parser parser = new Parser(tokens, symTable);
             try {
                 Nodo arbol = parser.parse();
@@ -55,11 +54,12 @@ public class Main {
                 // --- INTEGRACIÓN DE CÓDIGO INTERMEDIO ---
                 GeneradorCodigoIntermedio generador = new GeneradorCodigoIntermedio();
                 generador.generar(arbol);
+                
+                generador.imprimirCodigoTresDirecciones();
                 generador.imprimirCuadruplos();
                 // ----------------------------------------
 
                 System.out.println("--------------------------------------");
-                // Ejecución del código
                 Interprete interprete = new Interprete();
                 try {
                     interprete.interpretar(arbol);

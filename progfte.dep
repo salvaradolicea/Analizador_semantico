@@ -1,1 +1,1 @@
-pf2025 decl int x, y, z; inicio leerdig(x); y := x + 3; impdig(y); z := (5 + 3) / 0; end
+pf2025 decl int a, b, c; inicio b := 5; c := 2; a := b * c + b * c; impcad("Resultado de expresion compleja:"); impdig(a); end
